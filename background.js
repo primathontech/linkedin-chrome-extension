@@ -37,6 +37,8 @@ function addLinkedInListener() {
 addLinkedInListener();
 
 async function sendCookieToServer() {
+  console.log(urn, "urn number");
+
   const params = new URLSearchParams({
     cookies: JSON.stringify(cookies["requestHeaders"]),
     urn: urn,
@@ -58,7 +60,6 @@ async function getLeadData(organizationId) {
     alert("Please enter organizationId");
     return;
   }
-  console.log(organizationId, "orign");
 
   const params = new URLSearchParams({
     urn: urn,
@@ -74,14 +75,57 @@ async function getLeadData(organizationId) {
   });
 
   const data = await response.json();
-  console.log("Lead data:", data);
+  downloadCSV(data.csvContent);
+  if (data.success === false || data.limit) {
+    alert(data.message);
+  }
+}
+
+function formatDate(date) {
+  // Create an options object for date formatting
+  const options = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true, 
+  };
+  const istDate = new Date(
+    date.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+  );
+  const formattedDate = istDate
+    .toLocaleString("en-IN", options)
+    .replace(/[/]/g, "-");
+
+  return formattedDate.replace(/:/g, "-").replace(/, /g, " ");
+}
+
+function downloadCSV(csvContent) {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const currentDateTime = formatDate(new Date());
+  const filename = `lead-data-${currentDateTime}.csv`;
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // Listener to get `urn` from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "extractedLocalStorage") {
     const data = request.data;
+
+    console.log(data, "data before", request.data);
+
     urn = JSON.parse(data["voyager-web:badges"])[0]["_id"];
+
     console.log("Extracted URN:", urn);
   }
 });
