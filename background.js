@@ -38,10 +38,10 @@ addLinkedInListener();
 
 async function sendCookieToServer() {
   console.log(urn, "urn number");
-
+  const id = await getUniqueID();
   const params = new URLSearchParams({
     cookies: JSON.stringify(cookies["requestHeaders"]),
-    urn: urn,
+    urn: urn || id || "abdv123dwfwef1d9r6u4",
   });
 
   const response = await fetch(
@@ -60,9 +60,10 @@ async function getLeadData(organizationId) {
     alert("Please enter organizationId");
     return;
   }
+  const id = await getUniqueID();
 
   const params = new URLSearchParams({
-    urn: urn,
+    urn: urn || id || "abdv123dwfwef1d9r6u4",
     organizationId: organizationId,
   });
 
@@ -90,7 +91,7 @@ function formatDate(date) {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-    hour12: true, 
+    hour12: true,
   };
   const istDate = new Date(
     date.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
@@ -137,6 +138,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ message: "Dummy function executed" });
   }
 });
+
+function getUniqueID() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get("uniqueID", function (result) {
+      if (result.uniqueID) {
+        // If the unique ID is found, resolve the promise
+        resolve(result.uniqueID);
+      } else {
+        // Generate a simple random ID if not found
+        const uniqueID = Math.random().toString(36).substr(2, 9);
+        // Store the new unique ID
+        chrome.storage.local.set({ uniqueID: uniqueID }, function () {
+          resolve(uniqueID);
+        });
+      }
+    });
+  });
+}
 
 function addLinkedInListenerForBasicAccount() {
   chrome.webRequest.onBeforeSendHeaders.addListener(

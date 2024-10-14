@@ -12,7 +12,9 @@
     "storage"
   ],
   "icons": {
-    "16": "logo.png"
+    "16": "logo.png",
+    "64": "64.png",
+    "128": "128.png"
   },
   "background": {
     "scripts": ["background.js"],
