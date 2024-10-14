@@ -8,6 +8,7 @@
     "<all_urls>",
     "downloads",
     "activeTab",
+    "notifications",
     "https://www.linkedin.com/*",
     "storage"
   ],

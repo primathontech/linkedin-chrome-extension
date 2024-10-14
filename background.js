@@ -57,7 +57,7 @@ async function sendCookieToServer() {
 
 async function getLeadData(organizationId) {
   if (!organizationId) {
-    alert("Please enter organizationId");
+    alert("Please Enter Subscription ID");
     return;
   }
   const id = await getUniqueID();
