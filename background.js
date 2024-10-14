@@ -45,7 +45,7 @@ async function sendCookieToServer() {
   });
 
   const response = await fetch(
-    `http://localhost:3000/api/set-cookies?${params}`,
+    `https://api.linkinflo.com/api/set-cookies?${params}`,
     {
       method: "GET",
     }
@@ -67,7 +67,7 @@ async function getLeadData(organizationId) {
     organizationId: organizationId,
   });
 
-  const response = await fetch(`http://localhost:3000/api/get-data?${params}`, {
+  const response = await fetch(`https://api.linkinflo.com/api/get-data?${params}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

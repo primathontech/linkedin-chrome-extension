@@ -10,6 +10,7 @@
     "activeTab",
     "notifications",
     "https://www.linkedin.com/*",
+    "https://api.linkinflo.com",
     "storage"
   ],
   "icons": {
