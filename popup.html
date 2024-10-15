@@ -2,9 +2,31 @@
 <html>
   <head>
     <title>Invoke Dummy Function</title>
-    <style></style>
+    <style>
+      body {
+        background-color: white;
+      }
+      input {
+        margin-bottom: 10px;
+        padding: 10px;
+        outline: none;
+      }
+
+      button {
+        background-color: gray;
+        border-radius: 8px;
+        padding: 8px;
+        color: #ffffff;
+        border: none;
+      }
+    </style>
   </head>
   <body>
+    <input
+      type="text"
+      id="organizationId"
+      placeholder="Enter Subscription ID"
+    />
     <button id="myButton">Extract Data</button>
     <script src="popup.js"></script>
   </body>
