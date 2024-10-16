@@ -111,7 +111,7 @@ async function sendCookieToServer() {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/set-cookies?${params}`,
+      `https://api.linkinflo.com/api/set-cookies?${params}`,
       {
         method: "GET",
       }
@@ -163,7 +163,7 @@ async function getLeadData(organizationId) {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/get-data?${params}`,
+        `https://api.linkinflo.com/api/get-data?${params}`,
         {
           method: "GET",
           headers: {
