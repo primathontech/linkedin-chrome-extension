@@ -175,16 +175,16 @@ async function getLeadData(organizationId) {
 
       const data = await response.json();
       updateLoaderState(false, "Data fetched successfully");
-      chrome.notifications.create({
-        type: "basic",
-        iconUrl: "logo.png",
-        title: "Processing Success",
-        message: "Data Downloaded Successfully",
-        priority: 1,
-      });
       downloadCSV(data.csvContent, savedSearchId);
       if (data.success === false || data.limit) {
         updateLoaderState(false, data.message);
+        chrome.notifications.create({
+          type: "basic",
+          iconUrl: "logo.png",
+          title: "Processing Success",
+          message: `${data.message}`,
+          priority: 1,
+        });
       }
     } catch (error) {
       console.error("Error fetching lead data:", error);
