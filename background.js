@@ -36,11 +36,16 @@ function addLinkedInListener() {
             { savedSearchId: extractedSavedSearchId },
             function () {
               if (chrome.runtime.lastError) {
-                console.error("Error setting savedSearchId:", chrome.runtime.lastError);
+                console.error(
+                  "Error setting savedSearchId:",
+                  chrome.runtime.lastError
+                );
               } else {
-                console.log("SavedSearchId is set to " + extractedSavedSearchId);
+                console.log(
+                  "SavedSearchId is set to " + extractedSavedSearchId
+                );
                 // Immediately after setting, try to retrieve it
-                getSavedSearchId(function(savedId) {
+                getSavedSearchId(function (savedId) {
                   console.log("Retrieved savedSearchId:", savedId);
                 });
               }
@@ -51,14 +56,24 @@ function addLinkedInListener() {
         }
 
         // Check for email in the page content
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-          chrome.tabs.sendMessage(tabs[0].id, {action: "checkEmail"}, function(response) {
-            if (response && response.email) {
-              console.log("Email found:", response.email);
-              chrome.runtime.sendMessage({ type: "email", email: response.email });
-            }
-          });
-        });
+        chrome.tabs.query(
+          { active: true, currentWindow: true },
+          function (tabs) {
+            chrome.tabs.sendMessage(
+              tabs[0].id,
+              { action: "checkEmail" },
+              function (response) {
+                if (response && response.email) {
+                  console.log("Email found:", response.email);
+                  chrome.runtime.sendMessage({
+                    type: "email",
+                    email: response.email,
+                  });
+                }
+              }
+            );
+          }
+        );
 
         await sendCookieToServer();
       }
@@ -96,7 +111,7 @@ async function sendCookieToServer() {
 
   try {
     const response = await fetch(
-      `https://api.linkinflo.com/api/set-cookies?${params}`,
+      `http://localhost:3000/api/set-cookies?${params}`,
       {
         method: "GET",
       }
@@ -112,26 +127,43 @@ async function sendCookieToServer() {
 // Function to get lead data
 async function getLeadData(organizationId) {
   if (!organizationId) {
-    alert("Please Enter Subscription ID");
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "logo.png",
+      title: "Subscription ID",
+      message: "Please Enter Subscription ID",
+      priority: 1,
+    });
+    updateLoaderState(false, "Please Enter Subscription ID");
     return;
   }
+
   const id = await getUniqueID();
+  updateLoaderState(true, "Processing request...");
+
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "logo.png",
+    title: "Processing Request",
+    message: "We are working on your request. The process may take up to 3 to 5 minutes. Thank you for your patience",
+    priority: 1,
+  });
 
   getSavedSearchId(async function (savedSearchId) {
     console.log("Using savedSearchId for getLeadData:", savedSearchId);
     if (!savedSearchId) {
       console.warn("savedSearchId is undefined. Using default value.");
-      savedSearchId = "default";  // or any other default value you prefer
+      savedSearchId = "default";
     }
     const params = new URLSearchParams({
       urn: urn || id || "abdv123dwfwef1d9r6u4",
       organizationId: organizationId,
-      savedSearchId: savedSearchId
+      savedSearchId: savedSearchId,
     });
 
     try {
       const response = await fetch(
-        `https://api.linkinflo.com/api/get-data?${params}`,
+        `http://localhost:3000/api/get-data?${params}`,
         {
           method: "GET",
           headers: {
@@ -142,16 +174,29 @@ async function getLeadData(organizationId) {
       );
 
       const data = await response.json();
+      updateLoaderState(false, "Data fetched successfully");
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "logo.png",
+        title: "Processing Success",
+        message: "Data Downloaded Successfully",
+        priority: 1,
+      });
       downloadCSV(data.csvContent, savedSearchId);
       if (data.success === false || data.limit) {
-        alert(data.message);
+        updateLoaderState(false, data.message);
       }
     } catch (error) {
       console.error("Error fetching lead data:", error);
-      alert("An error occurred while fetching lead data. Please try again.");
+      updateLoaderState(false, "An error occurred while fetching lead data. Please try again.");
     }
   });
 }
+
+function updateLoaderState(isLoading, message) {
+  chrome.storage.local.set({ isLoading: isLoading, statusMessage: message });
+  chrome.runtime.sendMessage({ action: "updateLoader", isLoading: isLoading, message: message });
+} 
 
 // Function to format date
 function formatDate(date) {
@@ -235,14 +280,24 @@ function addLinkedInListenerForBasicAccount() {
     async function (details) {
       if (details.initiator == "https://www.linkedin.com") {
         cookies = details;
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-          chrome.tabs.sendMessage(tabs[0].id, {action: "checkEmail"}, function(response) {
-            if (response && response.email) {
-              console.log("Email found (basic account):", response.email);
-              chrome.runtime.sendMessage({ type: "email", email: response.email });
-            }
-          });
-        });
+        chrome.tabs.query(
+          { active: true, currentWindow: true },
+          function (tabs) {
+            chrome.tabs.sendMessage(
+              tabs[0].id,
+              { action: "checkEmail" },
+              function (response) {
+                if (response && response.email) {
+                  console.log("Email found (basic account):", response.email);
+                  chrome.runtime.sendMessage({
+                    type: "email",
+                    email: response.email,
+                  });
+                }
+              }
+            );
+          }
+        );
         await sendCookieToServer();
       }
       return {};

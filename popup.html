@@ -1,23 +1,65 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Invoke Dummy Function</title>
+    <title>Data Extractor</title>
     <style>
       body {
         background-color: white;
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        width: 300px;
       }
       input {
         margin-bottom: 10px;
         padding: 10px;
         outline: none;
+        width: 100%;
+        box-sizing: border-box;
       }
-
       button {
         background-color: gray;
         border-radius: 8px;
-        padding: 8px;
+        padding: 8px 16px;
         color: #ffffff;
         border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #555;
+      }
+      #loader {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid gray;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #status-message {
+        text-align: center;
       }
     </style>
   </head>
@@ -28,6 +70,10 @@
       placeholder="Enter Subscription ID"
     />
     <button id="myButton">Extract Data</button>
+    <div id="loader">
+      <div class="spinner"></div>
+      <div id="status-message">Processing...</div>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>
