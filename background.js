@@ -25,12 +25,11 @@ function extractSavedSearchId(url) {
 function addLinkedInListener() {
   chrome.webRequest.onBeforeSendHeaders.addListener(
     async function (details) {
-      console.log("Listener triggered for URL:", details.url);
       if (details.initiator == "https://www.linkedin.com") {
         cookies = details;
 
         let extractedSavedSearchId = extractSavedSearchId(details.url);
-        console.log("Extracted savedSearchId:", extractedSavedSearchId);
+        
         if (extractedSavedSearchId) {
           chrome.storage.local.set(
             { savedSearchId: extractedSavedSearchId },
@@ -111,7 +110,7 @@ async function sendCookieToServer() {
 
   try {
     const response = await fetch(
-      `https://api.linkinflo.com/api/set-cookies?${params}`,
+      `http://localhost:3000/api/set-cookies?${params}`,
       {
         method: "GET",
       }
@@ -145,7 +144,8 @@ async function getLeadData(organizationId) {
     type: "basic",
     iconUrl: "logo.png",
     title: "Processing Request",
-    message: "We are working on your request. The process may take up to 3 to 5 minutes. Thank you for your patience",
+    message:
+      "We are working on your request. The process may take up to 3 to 5 minutes. Thank you for your patience",
     priority: 1,
   });
 
@@ -163,7 +163,7 @@ async function getLeadData(organizationId) {
 
     try {
       const response = await fetch(
-        `https://api.linkinflo.com/api/get-data?${params}`,
+        `http://localhost:3000/api/get-data?${params}`,
         {
           method: "GET",
           headers: {
@@ -174,6 +174,7 @@ async function getLeadData(organizationId) {
       );
 
       const data = await response.json();
+      console.log("Lead Data:", data, "and", data.csvContent);
       updateLoaderState(false, "Data fetched successfully");
       downloadCSV(data.csvContent, savedSearchId);
       if (data.success === false || data.limit) {
@@ -188,15 +189,22 @@ async function getLeadData(organizationId) {
       }
     } catch (error) {
       console.error("Error fetching lead data:", error);
-      updateLoaderState(false, "An error occurred while fetching lead data. Please try again.");
+      updateLoaderState(
+        false,
+        "An error occurred while fetching lead data. Please try again."
+      );
     }
   });
 }
 
 function updateLoaderState(isLoading, message) {
   chrome.storage.local.set({ isLoading: isLoading, statusMessage: message });
-  chrome.runtime.sendMessage({ action: "updateLoader", isLoading: isLoading, message: message });
-} 
+  chrome.runtime.sendMessage({
+    action: "updateLoader",
+    isLoading: isLoading,
+    message: message,
+  });
+}
 
 // Function to format date
 function formatDate(date) {
@@ -220,19 +228,34 @@ function formatDate(date) {
 // Function to download CSV
 function downloadCSV(csvContent, savedSearchId) {
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    const url = event.target.result;
 
-  const currentDateTime = formatDate(new Date());
-  const filename = savedSearchId
-    ? `lead-data-${savedSearchId}-${currentDateTime}.csv`
-    : `lead-data-${currentDateTime}.csv`;
+    const currentDateTime = formatDate(new Date());
+    const filename = savedSearchId
+      ? `lead-data-${savedSearchId}-${currentDateTime}.csv`
+      : `lead-data-${currentDateTime}.csv`;
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+    chrome.downloads.download(
+      {
+        url: url,
+        filename: filename,
+        saveAs: true,
+      },
+      (downloadId) => {
+        if (chrome.runtime.lastError) {
+          console.error(
+            "Error downloading file: ",
+            chrome.runtime.lastError.message
+          );
+        } else {
+          console.log(`Download initiated with ID: ${downloadId}`);
+        }
+      }
+    );
+  };
+  reader.readAsDataURL(blob);
 }
 
 // Listener for messages from content script
